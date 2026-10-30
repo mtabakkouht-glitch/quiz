@@ -61,11 +61,11 @@
                     <label>Preguntas por partida:</label>
                     <div class="pick-options" id="pick-options"></div>
                 </div>
-                <div class="lobby-order">
+                <div id="lobby-order" class="lobby-order hidden">
                     <label>Orden:</label>
                     <div class="pick-options">
-                        <button class="pick-btn active" id="btn-order" onclick="setOrder(false)">📋 En orden</button>
-                        <button class="pick-btn" id="btn-shuffle" onclick="setOrder(true)">🎲 Aleatorio</button>
+                        <button class="pick-btn" id="btn-order" onclick="setOrder(false)">📋 En orden</button>
+                        <button class="pick-btn active" id="btn-shuffle" onclick="setOrder(true)">🎲 Aleatorio</button>
                     </div>
                 </div>
                 <button class="btn btn-primary btn-lg pulse" onclick="startPlaying()">

@@ -356,9 +356,16 @@ function showLobby() {
         state.pickCount = total;
     }
 
-    state.shuffleMode = false;
-    document.getElementById('btn-order').classList.add('active');
-    document.getElementById('btn-shuffle').classList.remove('active');
+    const orderContainer = document.getElementById('lobby-order');
+    if (total > 10) {
+        state.shuffleMode = true;
+        orderContainer.classList.remove('hidden');
+        document.getElementById('btn-order').classList.remove('active');
+        document.getElementById('btn-shuffle').classList.add('active');
+    } else {
+        state.shuffleMode = false;
+        orderContainer.classList.add('hidden');
+    }
 
     goTo('lobby');
 }
