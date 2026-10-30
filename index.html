@@ -6,6 +6,8 @@
     <title>QuizApp</title>
     <link rel="stylesheet" href="styles.css">
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lz-string/1.5.0/lz-string.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
 </head>
 <body>
     <div id="app">
@@ -141,6 +143,18 @@
                         <button class="btn btn-primary btn-copy" onclick="copyInviteLink()">Copiar</button>
                     </div>
                     <p id="copy-invite-feedback" class="copy-feedback hidden">✅ ¡Enlace copiado!</p>
+                </div>
+
+                <div class="share-section share-qr-section">
+                    <p class="share-label">📱 Código QR</p>
+                    <p class="share-desc">Enséñale el QR y que lo escanee con la cámara</p>
+                    <div class="qr-tabs">
+                        <button class="pick-btn active" id="qr-tab-play" onclick="showQR('play')">Jugar directo</button>
+                        <button class="pick-btn" id="qr-tab-invite" onclick="showQR('invite')">App completa</button>
+                    </div>
+                    <div class="qr-container">
+                        <canvas id="qr-canvas"></canvas>
+                    </div>
                 </div>
 
                 <button class="btn btn-outline" onclick="closeModal()">Cerrar</button>

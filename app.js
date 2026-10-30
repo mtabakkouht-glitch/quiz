@@ -209,18 +209,21 @@ function saveQuiz() {
 }
 
 /* === SHARE === */
-function generateLink(quiz) {
-    const data = JSON.stringify({
+function quizToJSON(quiz) {
+    return JSON.stringify({
         t: quiz.title,
-        q: quiz.questions.map(q => ({
-            x: q.text,
-            o: q.options,
-            c: q.correct,
-            s: q.time
-        }))
+        q: quiz.questions.map(q => ({ x: q.text, o: q.options, c: q.correct, s: q.time }))
     });
-    const encoded = btoa(unescape(encodeURIComponent(data)));
-    return window.location.origin + window.location.pathname + '#q=' + encoded;
+}
+
+function generateLink(quiz) {
+    const compressed = LZString.compressToEncodedURIComponent(quizToJSON(quiz));
+    return window.location.origin + window.location.pathname + '#z=' + compressed;
+}
+
+function generateInviteLink(quiz) {
+    const compressed = LZString.compressToEncodedURIComponent(quizToJSON(quiz));
+    return window.location.origin + window.location.pathname + '#zi=' + compressed;
 }
 
 function shareQuiz(index) {
@@ -229,23 +232,30 @@ function shareQuiz(index) {
     showShareModal(link, quiz);
 }
 
-function generateInviteLink(quiz) {
-    const data = JSON.stringify({
-        t: quiz.title,
-        q: quiz.questions.map(q => ({ x: q.text, o: q.options, c: q.correct, s: q.time }))
-    });
-    const encoded = btoa(unescape(encodeURIComponent(data)));
-    return window.location.origin + window.location.pathname + '#i=' + encoded;
-}
-
 function showShareModal(link, quiz) {
     document.getElementById('share-link').value = link;
     document.getElementById('copy-feedback').classList.add('hidden');
+    state.shareLinks = { play: link };
     if (quiz) {
-        document.getElementById('invite-link').value = generateInviteLink(quiz);
+        const inviteLink = generateInviteLink(quiz);
+        document.getElementById('invite-link').value = inviteLink;
+        state.shareLinks.invite = inviteLink;
     }
     document.getElementById('copy-invite-feedback').classList.add('hidden');
     document.getElementById('modal-share').classList.remove('hidden');
+    showQR('play');
+}
+
+function showQR(type) {
+    document.getElementById('qr-tab-play').classList.toggle('active', type === 'play');
+    document.getElementById('qr-tab-invite').classList.toggle('active', type === 'invite');
+    const url = type === 'invite' ? state.shareLinks.invite : state.shareLinks.play;
+    new QRious({
+        element: document.getElementById('qr-canvas'),
+        value: url || '',
+        size: 200,
+        level: 'L'
+    });
 }
 
 function closeModal() {
@@ -289,46 +299,54 @@ function playQuiz(index) {
     showLobby();
 }
 
+function decodeHash(hash) {
+    if (hash.startsWith('#z=') || hash.startsWith('#zi=')) {
+        const isInvite = hash.startsWith('#zi=');
+        const compressed = hash.slice(isInvite ? 4 : 3);
+        const json = LZString.decompressFromEncodedURIComponent(compressed);
+        return { data: JSON.parse(json), invite: isInvite };
+    }
+    if (hash.startsWith('#q=') || hash.startsWith('#i=')) {
+        const isInvite = hash.startsWith('#i=');
+        const encoded = hash.slice(isInvite ? 3 : 3);
+        const json = decodeURIComponent(escape(atob(encoded)));
+        return { data: JSON.parse(json), invite: isInvite };
+    }
+    return null;
+}
+
 function checkUrlForQuiz() {
     const hash = window.location.hash;
+    if (!hash || hash.length < 4) return;
 
-    if (hash.startsWith('#i=')) {
-        try {
-            const encoded = hash.slice(3);
-            const json = decodeURIComponent(escape(atob(encoded)));
-            const data = JSON.parse(json);
+    try {
+        const result = decodeHash(hash);
+        if (!result) return;
+
+        const { data, invite } = result;
+
+        if (invite) {
             const quiz = {
                 id: Date.now().toString(36),
                 title: data.t,
                 questions: data.q.map(q => ({ text: q.x, options: q.o, correct: q.c, time: q.s })),
                 created: new Date().toISOString()
             };
-            const exists = state.quizzes.some(q => q.title === quiz.title);
-            if (!exists) {
+            if (!state.quizzes.some(q => q.title === quiz.title)) {
                 state.quizzes.push(quiz);
                 saveQuizzesToStorage();
             }
             history.replaceState(null, '', window.location.pathname);
             renderHome();
-        } catch {
-            console.error('Enlace de invitación inválido');
-        }
-        return;
-    }
-
-    if (hash.startsWith('#q=')) {
-        try {
-            const encoded = hash.slice(3);
-            const json = decodeURIComponent(escape(atob(encoded)));
-            const data = JSON.parse(json);
+        } else {
             state.currentQuiz = {
                 title: data.t,
                 questions: data.q.map(q => ({ text: q.x, options: q.o, correct: q.c, time: q.s }))
             };
             showLobby();
-        } catch {
-            console.error('Enlace de quiz inválido');
         }
+    } catch {
+        console.error('Enlace de quiz inválido');
     }
 }
 

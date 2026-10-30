@@ -968,6 +968,26 @@ body {
     margin-bottom: 10px;
 }
 
+.qr-tabs {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    margin-bottom: 14px;
+}
+
+.qr-container {
+    display: flex;
+    justify-content: center;
+    padding: 12px;
+    background: white;
+    border-radius: var(--radius-sm);
+}
+
+.qr-container canvas {
+    max-width: 200px;
+    max-height: 200px;
+}
+
 /* === IMPORT MODAL === */
 .modal-import-content {
     max-width: 560px;
