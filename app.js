@@ -203,7 +203,7 @@ function saveQuiz() {
     state.editingId = null;
 
     const link = generateLink(quiz);
-    showShareModal(link);
+    showShareModal(link, quiz);
     goTo('home');
 }
 
@@ -225,12 +225,25 @@ function generateLink(quiz) {
 function shareQuiz(index) {
     const quiz = state.quizzes[index];
     const link = generateLink(quiz);
-    showShareModal(link);
+    showShareModal(link, quiz);
 }
 
-function showShareModal(link) {
+function generateInviteLink(quiz) {
+    const data = JSON.stringify({
+        t: quiz.title,
+        q: quiz.questions.map(q => ({ x: q.text, o: q.options, c: q.correct, s: q.time }))
+    });
+    const encoded = btoa(unescape(encodeURIComponent(data)));
+    return window.location.origin + window.location.pathname + '#i=' + encoded;
+}
+
+function showShareModal(link, quiz) {
     document.getElementById('share-link').value = link;
     document.getElementById('copy-feedback').classList.add('hidden');
+    if (quiz) {
+        document.getElementById('invite-link').value = generateInviteLink(quiz);
+    }
+    document.getElementById('copy-invite-feedback').classList.add('hidden');
     document.getElementById('modal-share').classList.remove('hidden');
 }
 
@@ -244,6 +257,15 @@ function copyLink() {
     navigator.clipboard.writeText(input.value).then(() => {
         document.getElementById('copy-feedback').classList.remove('hidden');
         setTimeout(() => document.getElementById('copy-feedback').classList.add('hidden'), 3000);
+    });
+}
+
+function copyInviteLink() {
+    const input = document.getElementById('invite-link');
+    input.select();
+    navigator.clipboard.writeText(input.value).then(() => {
+        document.getElementById('copy-invite-feedback').classList.remove('hidden');
+        setTimeout(() => document.getElementById('copy-invite-feedback').classList.add('hidden'), 3000);
     });
 }
 
@@ -268,26 +290,44 @@ function playQuiz(index) {
 
 function checkUrlForQuiz() {
     const hash = window.location.hash;
-    if (!hash.startsWith('#q=')) return;
 
-    try {
-        const encoded = hash.slice(3);
-        const json = decodeURIComponent(escape(atob(encoded)));
-        const data = JSON.parse(json);
+    if (hash.startsWith('#i=')) {
+        try {
+            const encoded = hash.slice(3);
+            const json = decodeURIComponent(escape(atob(encoded)));
+            const data = JSON.parse(json);
+            const quiz = {
+                id: Date.now().toString(36),
+                title: data.t,
+                questions: data.q.map(q => ({ text: q.x, options: q.o, correct: q.c, time: q.s })),
+                created: new Date().toISOString()
+            };
+            const exists = state.quizzes.some(q => q.title === quiz.title);
+            if (!exists) {
+                state.quizzes.push(quiz);
+                saveQuizzesToStorage();
+            }
+            history.replaceState(null, '', window.location.pathname);
+            renderHome();
+        } catch {
+            console.error('Enlace de invitación inválido');
+        }
+        return;
+    }
 
-        state.currentQuiz = {
-            title: data.t,
-            questions: data.q.map(q => ({
-                text: q.x,
-                options: q.o,
-                correct: q.c,
-                time: q.s
-            }))
-        };
-
-        showLobby();
-    } catch {
-        console.error('Enlace de quiz inválido');
+    if (hash.startsWith('#q=')) {
+        try {
+            const encoded = hash.slice(3);
+            const json = decodeURIComponent(escape(atob(encoded)));
+            const data = JSON.parse(json);
+            state.currentQuiz = {
+                title: data.t,
+                questions: data.q.map(q => ({ text: q.x, options: q.o, correct: q.c, time: q.s }))
+            };
+            showLobby();
+        } catch {
+            console.error('Enlace de quiz inválido');
+        }
     }
 }
 
@@ -585,7 +625,7 @@ function importQuestions() {
     renderHome();
 
     const link = generateLink(quiz);
-    showShareModal(link);
+    showShareModal(link, quiz);
 }
 
 function parseText(raw, defaultTime) {

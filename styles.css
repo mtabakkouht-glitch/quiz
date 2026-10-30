@@ -927,6 +927,35 @@ body {
     display: none;
 }
 
+.modal-share-content {
+    text-align: left;
+    max-width: 500px;
+}
+
+.modal-share-content h2 {
+    text-align: center;
+}
+
+.share-section {
+    background: var(--bg);
+    border-radius: var(--radius-sm);
+    padding: 14px;
+    margin-bottom: 14px;
+}
+
+.share-label {
+    font-weight: 800;
+    font-size: 0.95rem;
+    margin-bottom: 2px;
+    color: var(--text);
+}
+
+.share-desc {
+    font-size: 0.82rem;
+    color: var(--text-light);
+    margin-bottom: 10px;
+}
+
 /* === IMPORT MODAL === */
 .modal-import-content {
     max-width: 560px;

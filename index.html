@@ -113,14 +113,29 @@
         <!-- SHARE MODAL -->
         <div id="modal-share" class="modal hidden">
             <div class="modal-overlay" onclick="closeModal()"></div>
-            <div class="modal-content">
+            <div class="modal-content modal-share-content">
                 <h2>🔗 Compartir Quiz</h2>
-                <p>Copia este enlace y envíaselo a tus alumnos:</p>
-                <div class="share-link-box">
-                    <input type="text" id="share-link" class="share-input" readonly>
-                    <button class="btn btn-primary btn-copy" onclick="copyLink()">Copiar</button>
+
+                <div class="share-section">
+                    <p class="share-label">🎮 Jugar directo</p>
+                    <p class="share-desc">Se abre el quiz directamente para jugar</p>
+                    <div class="share-link-box">
+                        <input type="text" id="share-link" class="share-input" readonly>
+                        <button class="btn btn-primary btn-copy" onclick="copyLink()">Copiar</button>
+                    </div>
+                    <p id="copy-feedback" class="copy-feedback hidden">✅ ¡Enlace copiado!</p>
                 </div>
-                <p id="copy-feedback" class="copy-feedback hidden">✅ ¡Enlace copiado!</p>
+
+                <div class="share-section">
+                    <p class="share-label">✨ Enlace con la app completa</p>
+                    <p class="share-desc">Ve la interfaz, el quiz guardado y puede jugar cuando quiera</p>
+                    <div class="share-link-box">
+                        <input type="text" id="invite-link" class="share-input" readonly>
+                        <button class="btn btn-primary btn-copy" onclick="copyInviteLink()">Copiar</button>
+                    </div>
+                    <p id="copy-invite-feedback" class="copy-feedback hidden">✅ ¡Enlace copiado!</p>
+                </div>
+
                 <button class="btn btn-outline" onclick="closeModal()">Cerrar</button>
             </div>
         </div>
