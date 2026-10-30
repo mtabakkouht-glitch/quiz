@@ -6,6 +6,7 @@ const state = {
     answers: [],
     playQuestions: [],
     pickCount: 10,
+    shuffleMode: false,
     timerInterval: null,
     timeLeft: 0,
     editingId: null
@@ -355,7 +356,17 @@ function showLobby() {
         state.pickCount = total;
     }
 
+    state.shuffleMode = false;
+    document.getElementById('btn-order').classList.add('active');
+    document.getElementById('btn-shuffle').classList.remove('active');
+
     goTo('lobby');
+}
+
+function setOrder(shuffleOn) {
+    state.shuffleMode = shuffleOn;
+    document.getElementById('btn-order').classList.toggle('active', !shuffleOn);
+    document.getElementById('btn-shuffle').classList.toggle('active', shuffleOn);
 }
 
 function setPick(n) {
@@ -379,11 +390,8 @@ function startPlaying() {
     state.answers = [];
 
     const all = state.currentQuiz.questions;
-    if (state.pickCount < all.length) {
-        state.playQuestions = shuffle(all).slice(0, state.pickCount);
-    } else {
-        state.playQuestions = shuffle(all);
-    }
+    const pool = state.shuffleMode ? shuffle(all) : [...all];
+    state.playQuestions = pool.slice(0, state.pickCount);
 
     goTo('player');
     showQuestion();
