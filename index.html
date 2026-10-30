@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QuizApp</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div id="app">
+        <!-- HOME -->
+        <div id="view-home" class="view active">
+            <div class="home-hero">
+                <div class="logo">🧠</div>
+                <h1>QuizApp</h1>
+                <p class="subtitle">Crea y comparte quizzes divertidos</p>
+            </div>
+            <div class="home-actions">
+                <button class="btn btn-primary btn-lg" onclick="goTo('creator')">
+                    <span class="btn-icon">📝</span> Crear Quiz
+                </button>
+                <button class="btn btn-outline btn-lg" onclick="showImportModal()">
+                    <span class="btn-icon">📋</span> Importar preguntas
+                </button>
+            </div>
+            <div class="saved-quizzes">
+                <h2>Mis Quizzes</h2>
+                <div id="quiz-list" class="quiz-list"></div>
+                <p id="no-quizzes" class="empty-msg">Aún no has creado ningún quiz</p>
+            </div>
+        </div>
+
+        <!-- CREATOR -->
+        <div id="view-creator" class="view">
+            <header class="topbar">
+                <button class="btn-back" onclick="goTo('home')">← Volver</button>
+                <h2>Crear Quiz</h2>
+            </header>
+            <div class="creator-form">
+                <input type="text" id="quiz-title" class="input-title" placeholder="Título del quiz..." maxlength="80">
+                <div id="questions-container"></div>
+                <button class="btn btn-outline btn-add" onclick="addQuestion()">
+                    + Añadir pregunta
+                </button>
+                <button class="btn btn-primary btn-lg btn-save" onclick="saveQuiz()" id="btn-save">
+                    💾 Guardar y Compartir
+                </button>
+            </div>
+        </div>
+
+        <!-- EDIT (reutiliza creator) -->
+
+        <!-- PLAYER LOBBY -->
+        <div id="view-lobby" class="view">
+            <div class="lobby-card">
+                <div class="lobby-icon">🎯</div>
+                <h1 id="lobby-title"></h1>
+                <p id="lobby-info"></p>
+                <div id="lobby-pick" class="lobby-pick hidden">
+                    <label>Preguntas por partida:</label>
+                    <div class="pick-options" id="pick-options"></div>
+                </div>
+                <button class="btn btn-primary btn-lg pulse" onclick="startPlaying()">
+                    ¡Empezar!
+                </button>
+            </div>
+        </div>
+
+        <!-- PLAYER -->
+        <div id="view-player" class="view">
+            <div class="player-header">
+                <div class="progress-bar">
+                    <div id="progress-fill" class="progress-fill"></div>
+                </div>
+                <div class="player-info">
+                    <span id="question-counter" class="q-counter"></span>
+                    <div class="timer" id="timer-container">
+                        <svg class="timer-ring" viewBox="0 0 80 80">
+                            <circle class="timer-ring-bg" cx="40" cy="40" r="36"/>
+                            <circle id="timer-ring-progress" class="timer-ring-progress" cx="40" cy="40" r="36"/>
+                        </svg>
+                        <span id="timer-text" class="timer-text"></span>
+                    </div>
+                </div>
+            </div>
+            <div class="question-area">
+                <h2 id="question-text" class="question-text"></h2>
+                <div id="options-grid" class="options-grid"></div>
+            </div>
+        </div>
+
+        <!-- RESULTS -->
+        <div id="view-results" class="view">
+            <div class="results-card">
+                <h1>🏆 Resultados</h1>
+                <div class="score-circle">
+                    <svg viewBox="0 0 120 120">
+                        <circle class="score-bg" cx="60" cy="60" r="54"/>
+                        <circle id="score-ring" class="score-ring" cx="60" cy="60" r="54"/>
+                    </svg>
+                    <span id="score-text" class="score-text"></span>
+                </div>
+                <p id="score-label" class="score-label"></p>
+                <div id="results-detail" class="results-detail"></div>
+                <div class="results-actions">
+                    <button class="btn btn-primary" onclick="retryQuiz()">🔄 Repetir</button>
+                    <button class="btn btn-outline" onclick="goTo('home')">🏠 Inicio</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- SHARE MODAL -->
+        <div id="modal-share" class="modal hidden">
+            <div class="modal-overlay" onclick="closeModal()"></div>
+            <div class="modal-content">
+                <h2>🔗 Compartir Quiz</h2>
+                <p>Copia este enlace y envíaselo a tus alumnos:</p>
+                <div class="share-link-box">
+                    <input type="text" id="share-link" class="share-input" readonly>
+                    <button class="btn btn-primary btn-copy" onclick="copyLink()">Copiar</button>
+                </div>
+                <p id="copy-feedback" class="copy-feedback hidden">✅ ¡Enlace copiado!</p>
+                <button class="btn btn-outline" onclick="closeModal()">Cerrar</button>
+            </div>
+        </div>
+
+        <!-- IMPORT MODAL -->
+        <div id="modal-import" class="modal hidden">
+            <div class="modal-overlay" onclick="closeImportModal()"></div>
+            <div class="modal-content modal-import-content">
+                <h2>📋 Importar preguntas</h2>
+                <p>Pega las preguntas que te ha dado la IA. Marca la correcta con <strong>*</strong> al inicio.</p>
+                <div class="import-prompt-hint">
+                    <p class="hint-label">💡 Copia esto y pégalo en la IA:</p>
+                    <div class="hint-copybox" onclick="copyPromptHint()">
+                        <span id="prompt-hint-text">Genera [cantidad] preguntas tipo test sobre [tema] siguiendo este formato exacto. No numeres las preguntas. No pongas letras (a, b, c) delante de las opciones. No añadas explicaciones. Pon * solo delante de la opción correcta. Separa cada pregunta con una línea en blanco.
+
+Ejemplo del formato:
+¿Cuál es la capital de Francia?
+Madrid
+*París
+Londres
+Berlín</span>
+                        <button class="hint-copy-btn" title="Copiar">📋</button>
+                    </div>
+                    <p id="hint-copy-feedback" class="copy-feedback hidden">✅ ¡Copiado!</p>
+                </div>
+                <div class="import-format-hint">
+                    <details>
+                        <summary>Ver formato de ejemplo</summary>
+                        <pre>¿Capital de Francia?
+Madrid
+*París
+Londres
+Berlín
+
+¿Cuántos planetas hay?
+7
+*8
+9
+10</pre>
+                    </details>
+                </div>
+                <input type="text" id="import-title" class="input-title" placeholder="Título del quiz...">
+                <textarea id="import-text" class="import-textarea" placeholder="Pega aquí las preguntas..."></textarea>
+                <div class="import-options-row">
+                    <label>⏱️ Tiempo por pregunta:</label>
+                    <select id="import-time">
+                        <option value="10">10s</option>
+                        <option value="15">15s</option>
+                        <option value="20">20s</option>
+                        <option value="30" selected>30s</option>
+                        <option value="45">45s</option>
+                        <option value="60">60s</option>
+                    </select>
+                </div>
+                <p id="import-error" class="import-error hidden"></p>
+                <div class="import-actions">
+                    <button class="btn btn-primary" onclick="importQuestions()">Importar</button>
+                    <button class="btn btn-outline" onclick="closeImportModal()">Cancelar</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- CANVAS CONFETTI -->
+        <canvas id="confetti-canvas"></canvas>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
